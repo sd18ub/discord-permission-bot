@@ -8,8 +8,17 @@ Bot Discord (Node.js / discord.js) pour gerer les roles et permissions de ton se
 - `/edit-role role ajouter retirer` - ajoute/retire des permissions sur un role existant
 - `/role-info role` - affiche les permissions d'un role
 - `/assign-role membre role action` - donne ou retire un role a un membre
+- `/record start` - annonce publiquement le debut d'un enregistrement puis rejoint ton salon vocal
+- `/record stop` - arrete l'enregistrement, convertit l'audio et indique ou sont sauvegardes les fichiers
 
-Les commandes de gestion (`create-role`, `edit-role`, `assign-role`) sont limitees par defaut aux membres ayant la permission Discord "Gerer les roles".
+Les commandes de gestion (`create-role`, `edit-role`, `assign-role`, `record`) sont limitees par defaut aux membres ayant la permission Discord "Gerer les roles".
+
+### Enregistrement vocal (`/record`)
+
+- `/record start` poste d'abord un message visible dans le salon texte annoncant l'enregistrement (qui l'a demande, dans quel salon vocal) avant que le bot ne rejoigne le vocal. C'est le seul mecanisme de consentement : assure-toi que les personnes presentes voient ce message avant de parler.
+- Un seul enregistrement actif a la fois par serveur.
+- `/record stop` sauvegarde un fichier `.wav` par personne ayant parle, dans `recordings/<horodatage>_<id-du-salon>/` (dossier ignore par git, jamais commite).
+- Necessite `ffmpeg-static` (installe automatiquement avec `npm install`, aucun ffmpeg systeme requis) et l'intent **Server Members Intent** deja active pour `/assign-role`.
 
 ## 1. Creer l'application et le bot sur Discord
 
@@ -65,3 +74,13 @@ Le bot doit rester lance (ce terminal ouvert) pour repondre aux commandes tant q
 ## Liste des noms de permissions
 
 Les noms a utiliser dans `permissions`, `ajouter`, `retirer` correspondent aux cles de `PermissionFlagsBits` de discord.js (ex: `ManageMessages`, `KickMembers`, `BanMembers`, `ManageChannels`, `Administrator`, `ManageRoles`, `ManageGuild`, `MentionEveryone`, `ManageWebhooks`, `ManageNicknames`, etc.). Liste complete : https://discord.js.org/docs/packages/discord.js/main/PermissionFlagsBits:Variable
+
+## Scripts ponctuels (`scripts/`)
+
+En dehors des commandes slash, quelques scripts a lancer manuellement avec `node scripts/<fichier>.js <args>` pour des actions ciblees (ils utilisent le meme `.env`) :
+
+- `deny-view-channel.js <userId>` - refuse la permission "Voir le salon" a un membre precis sur tous les salons du serveur
+- `reset-view-channel.js <userId>` - supprime cette restriction (annule `deny-view-channel.js`)
+- `check-overwrite.js <userId>` - liste les eventuels overwrites de permission pour un membre, salon par salon
+- `ban-user.js <userId> [raison]` - bannit un membre du serveur (impossible sur le proprietaire du serveur, restriction imposee par Discord)
+- `diagnose-ban.js <userId>` - affiche la hierarchie des roles (bot vs cible) et si la cible est le proprietaire, utile pour comprendre un echec de ban/kick
